@@ -7,7 +7,7 @@
 |19120186|Đỗ Lê Khánh Đăng|
 |19120462|Lục Minh Bửu|
 
-## 2. Kế hoạch hàng tuân
+## 2. Kế hoạch hàng tuần
 
 |Tuần|Công việc|
 |---|---|
