@@ -1,4 +1,3 @@
-
 from numba import cuda
 
 import numpy as np
@@ -34,7 +33,7 @@ class HOG_CUDA:
         blockspergrid_x = math.ceil(self.picture_array.shape[0] / self.threadsperblock[0])
         blockspergrid_y = math.ceil(self.picture_array.shape[1] / self.threadsperblock[1])
         blockspergrid = (blockspergrid_x, blockspergrid_y)
-        gray_dev   = np.empty([self.height, self.width],dtype = float)
+        gray_dev   = np.empty([self.height, self.width],dtype = np.float32)
         input_dev   = cuda.to_device(self.picture_array)
         gray_device = cuda.device_array_like(gray_dev)
         kernel = self.__gray_kernel
@@ -78,7 +77,8 @@ class HOG_CUDA:
         self.__gray()
         gradient_x, gradient_y = self.__calc_gradient()
         self.magnitude = np.sqrt(np.square(gradient_x)+np.square(gradient_y))
-        self.direction = np.mod(np.add(360, np.rad2deg(np.arctan2(np.array(gradient_y), np.array(gradient_x)))), 360)
+        self.direction = np.abs((np.arctan2(gradient_y, gradient_x) * 180 / np.pi) - 1)
+        # self.direction = np.mod(np.add(360, np.rad2deg(np.arctan2(np.array(gradient_y), np.array(gradient_x)))), 360)
     
     @staticmethod
     @cuda.jit
@@ -93,29 +93,29 @@ class HOG_CUDA:
         thread_direction = direction[cur_r][cur_c]
         thread_mag       = magnitude[cur_r][cur_c]
         # chia lấy phần nguyên và phần dư
-        quotient  = int(thread_direction//sbin)
+        quotient  = math.floor(thread_direction//sbin) - 1
         remainder =     thread_direction % sbin
 
         if remainder==0:
             cuda.atomic.add(result_out, (idy, idx, quotient), thread_mag)
         else:
-            first_bin = quotient
+            first_bin = quotient - 1
 
             second_bin   = first_bin+1
-            need_to_add    = thread_mag*((second_bin*sbin - thread_direction)/(second_bin*sbin - first_bin*sbin))
+            need_to_add    = thread_mag*((second_bin*sbin - thread_direction)/sbin)
             cuda.atomic.add(result_out, (idy, idx, first_bin), need_to_add)
 
             second_bin_idx = second_bin
             if second_bin > 8:
                 second_bin_idx = 0
-            need_to_add_2  = thread_mag*((thread_direction - first_bin*sbin)/(second_bin*sbin - first_bin*sbin))   
+            need_to_add_2  = thread_mag*((thread_direction - first_bin*sbin)/sbin)   
             cuda.atomic.add(result_out, (idy, idx, second_bin_idx), need_to_add_2)
     
     def __all_hist(self):
         blockspergrid_x = math.ceil(self.picture_array.shape[0] / self.threadsperblock[0])
         blockspergrid_y = math.ceil(self.picture_array.shape[1] / self.threadsperblock[1])
         blockspergrid = (blockspergrid_x, blockspergrid_y)
-        hist_dev    = np.empty([self.n_cell[0], self.n_cell[1], self.nbins],dtype = np.float64)
+        hist_dev    = np.empty([self.n_cell[0], self.n_cell[1], self.nbins],dtype = np.float32)
         d_direction = cuda.to_device(self.direction)
         d_magnitude = cuda.to_device(self.magnitude)
         d_cell_size = cuda.to_device(self.cellSize)
