@@ -337,8 +337,8 @@ class SVM_Pa:
         K[i, j] = sumij
         
     def init_K(self, x):
-        d_x1 = self.X.astype(np.float64)
-        d_x2 = x.astype(np.float64)
+        d_x1 = cuda.to_device(self.X.astype(np.float64))
+        d_x2 = cuda.to_device(x.astype(np.float64))
         d_K = cuda.device_array((self.l, x.shape[0]), np.float64)
         blocksize = (32, 32)
         gridsize = (math.ceil(self.l/blocksize[0]), math.ceil(x.shape[0]/blocksize[1]))
@@ -399,8 +399,8 @@ class SVM_Pa:
         Q[i, j] = y[i]*y[j]*sumij
         
     def init_Q(self):
-        d_x = self.X.astype(np.float64)
-        d_y = self.y.astype(np.float64)
+        d_x = cuda.to_device(self.X.astype(np.float64))
+        d_y = cuda.to_device(self.y.astype(np.float64))
         d_Q = cuda.device_array((self.l, self.l), np.float64)
         blocksize = (32, 32)
         gridsize = (math.ceil(self.l/blocksize[0]), math.ceil(self.l/blocksize[1]))
@@ -422,7 +422,9 @@ class SVM_Pa:
         blocksize = 32
         gridsize = math.ceil(self.l/blocksize)
         d_dualcoef = cuda.device_array(self.l, np.float64)
-        self.compute_dual_coef_kernel[gridsize, blocksize](self.alphas, self.y, d_dualcoef, self.l)
+        d_alphas = cuda.to_device(self.alphas)
+        d_y = cuda.to_device(self.y)
+        self.compute_dual_coef_kernel[gridsize, blocksize](d_alphas, d_y, d_dualcoef, self.l)
         self.dual_coef = d_dualcoef.copy_to_host()
         
 
