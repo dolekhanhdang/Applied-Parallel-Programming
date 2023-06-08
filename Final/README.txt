@@ -1,4 +1,9 @@
-Bài làm của nhóm sẽ có 3 phần chính:
+1. Thông tin thành viên
+19120186 - Đỗ Lê Khánh Đăng
+19120364 - Nguyễn Đắc Thắng
+19120462 - Lục Minh Bửu
+
+2. Bài làm của nhóm sẽ có 3 phần chính:
 - 2 file HOG_detail và SVM_detail:
     + Trình bày chi tiết về thuật toán
     + Trình bày ý tưởng và các bước song song hóa
@@ -14,7 +19,7 @@ Bài làm của nhóm sẽ có 3 phần chính:
 
 - Link kaggle dữ liệu Cat và Dog: https://www.kaggle.com/datasets/shaunthesheep/microsoft-catsvsdogs-dataset/code?fbclid=IwAR3SBq-BbUfVVLdFrD-oz-5zuU20rcaVE94RkiZBxQXgTvQRUuMhdRSkZp8
 
-Một số thay đổi:
+3. Một số thay đổi:
 - Nhóm đã fix warning về truyền host array vào kernel function
 - Với warning về gridsize không thỏa occupancy:
     + Do số lượng block dùng không đủ nhiều để tất cả SM đều hoạt động nên sẽ hiện thông báo.
